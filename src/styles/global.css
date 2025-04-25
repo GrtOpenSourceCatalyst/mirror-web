@@ -3,4 +3,89 @@
 @import '@skeletonlabs/skeleton';
 @import '@skeletonlabs/skeleton/optional/presets';
 @import '@skeletonlabs/skeleton/themes/cerberus';
+
 @source '@skeletonlabs/skeleton-svelte/dist';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+    :root {
+        /* 定义你的基础颜色变量 (OKLCH 格式) */
+        --background: oklch(1 0 0);
+        --foreground: oklch(0.159 0.01 264.1);
+
+        --card: oklch(1 0 0);
+        --card-foreground: oklch(0.159 0.01 264.1);
+
+        --popover: oklch(1 0 0);
+        --popover-foreground: oklch(0.159 0.01 264.1);
+
+        --primary: oklch(0.401 0.157 259.222);
+        --primary-foreground: oklch(0.981 0 0);
+
+        --secondary: oklch(0.961 0.002 264.1);
+        --secondary-foreground: oklch(0.251 0.006 264.1);
+
+        --border: oklch(0.908 0.004 264.1);
+        --input: oklch(0.908 0.004 264.1);
+        --ring: oklch(0.251 0.006 264.1);
+
+        --radius: 0.5rem;
+    }
+
+    .dark {
+        /* 为暗模式重新定义变量 (OKLCH 格式) */
+        --background: oklch(0.159 0.01 264.1);
+        --foreground: oklch(0.981 0 0);
+
+        --card: oklch(0.159 0.01 264.1);
+        --card-foreground: oklch(0.981 0 0);
+
+        --popover: oklch(0.159 0.01 264.1);
+        --popover-foreground: oklch(0.981 0 0);
+
+        --primary: oklch(0.746 0.131 185.308);
+        --primary-foreground: oklch(0.251 0.006 264.1);
+
+        --secondary: oklch(0.308 0.004 264.1);
+        --secondary-foreground: oklch(0.981 0 0);
+
+        --border: oklch(0.308 0.004 264.1);
+        --input: oklch(0.308 0.004 264.1);
+        --ring: oklch(0.85 0.003 264.1);
+    }
+}
+
+@theme static {
+    --color-primary: oklch(var(--primary));
+    --color-primary-foreground: oklch(var(--primary-foreground));
+    --color-secondary: oklch(var(--secondary));
+    --color-secondary-foreground: oklch(var(--secondary-foreground));
+    --color-background: oklch(var(--background));
+    --color-foreground: oklch(var(--foreground));
+    --color-border: oklch(var(--border));
+    --color-input: oklch(var(--input));
+    --color-ring: oklch(var(--ring));
+    --color-card: oklch(var(--card));
+}
+
+:root {
+    background: var(--background);
+    color: var(--foreground);
+}
+
+@font-face {
+    font-family: 'Space Grotesk';
+    src: url('/grotesk.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* 或者创建特定类 */
+.space-grotesk-google {
+    font-family: 'Space Grotesk', sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-style: normal;
+}
