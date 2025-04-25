@@ -1,12 +1,10 @@
 ---
 import BasicLayout from "../layouts/BasicLayout.astro";
 import MirrorList from "../components/MirrorList.svelte";
-import PopularMirrors from "../components/PopularMirrors.svelte";
 import "@/styles/global.css";
 
-const pageTitle = "我的镜像站 | 高速文件下载服务";
-const pageDescription =
-  "提供各类开源软件、系统镜像的高速下载服务，让您快速获取需要的资源。";
+const pageTitle = "镜像列表 | 开源软件镜像服务";
+const pageDescription = "浏览所有可用的镜像源，包括开源系统、软件仓库等资源。";
 
 // 在服务端获取镜像数据
 let initialMirrors = [];
@@ -34,27 +32,25 @@ try {
 
 <BasicLayout title={pageTitle} description={pageDescription}>
   <div class="mx-auto w-full max-w-6xl">
+    <div class="breadcrumb mb-6">
+      <ol class="flex text-sm">
+        <li class="crumb"><a href="/" class="anchor">首页</a></li>
+        <li class="crumb-separator">{'/'}</li>
+        <li class="crumb">镜像列表</li>
+      </ol>
+    </div>
+    
     <section class="mb-8">
-      <h1
-        class="from-primary-500 to-tertiary-500 mb-4 bg-gradient-to-r bg-clip-text text-center text-4xl font-bold text-transparent"
-      >
-        欢迎使用我的镜像站
-      </h1>
-      <p class="text-surface-700-200-token mb-6 text-center text-lg">
-        快速、稳定、可靠的文件下载服务
+      <h1 class="h1 mb-4">镜像列表</h1>
+      <p class="text-lg">
+        这里列出了我们提供的所有镜像源。点击任意镜像名称可以查看详细的使用指南。
       </p>
-      <div class="mb-6 flex justify-center">
-        <a href="/mirrors" class="btn variant-filled-primary">查看所有镜像</a>
-      </div>
     </section>
 
-    <section class="mb-8">
-      <h2 class="h2 mb-6">热门镜像</h2>
-      <PopularMirrors
-        client:load
-        initialMirrors={initialMirrors}
-        initialError={initialError}
-      />
-    </section>
+    <MirrorList
+      client:load
+      initialMirrors={initialMirrors}
+      initialError={initialError}
+    />
   </div>
 </BasicLayout>

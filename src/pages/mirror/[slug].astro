@@ -1,0 +1,68 @@
+---
+import BasicLayout from "../../layouts/BasicLayout.astro";
+import MirrorUsageGuide from "../../components/MirrorUsageGuide.svelte";
+import "@/styles/global.css";
+
+// 获取路由参数
+const { slug } = Astro.params;
+
+// 在服务端获取镜像数据
+let mirror = null;
+let error = null;
+
+try {
+  // 获取所有镜像数据
+  const response = await fetch("http://localhost:8082/static/tunasync.json");
+  
+  if (!response.ok) {
+    throw new Error(`HTTP错误: ${response.status}`);
+  }
+  
+  const data = await response.json();
+  
+  // 查找匹配的镜像
+  if (data[slug]) {
+    mirror = {
+      name: slug,
+      ...data[slug],
+      // 格式化最后更新时间
+      lastUpdated: new Date(data[slug].last_update_ts * 1000).toLocaleString("zh-CN"),
+    };
+  } else {
+    error = "找不到该镜像";
+  }
+} catch (err) {
+  error = err.message;
+  console.error("服务端获取数据失败:", err);
+}
+
+// 设置页面标题和描述
+const pageTitle = mirror ? `${mirror.name} 镜像使用教程` : "镜像使用教程";
+const pageDescription = mirror 
+  ? `了解如何使用${mirror.name}镜像源，包括配置指南、常见问题解答等详细教程。`
+  : "镜像源使用教程，包括配置指南和常见问题解答。";
+---
+
+<BasicLayout title={pageTitle} description={pageDescription}>
+  <div class="mx-auto w-full max-w-6xl">
+    <div class="breadcrumb mb-6">
+      <ol class="flex text-sm">
+        <li class="crumb"><a href="/" class="anchor">首页</a></li>
+        <li class="crumb-separator">{'/'}</li>
+        <li class="crumb"><a href="/mirrors" class="anchor">镜像列表</a></li>
+        <li class="crumb-separator">{'/'}</li>
+        <li class="crumb">{mirror?.name || "未找到"}</li>
+      </ol>
+    </div>
+
+    {error ? (
+      <div class="card p-4 variant-filled-error">
+        <p class="h3">错误</p>
+        <p>{error}</p>
+        <a href="/" class="btn variant-filled mt-4">返回首页</a>
+      </div>
+    ) : (
+      <MirrorUsageGuide client:load mirror={mirror} />
+    )}
+  </div>
+</BasicLayout>

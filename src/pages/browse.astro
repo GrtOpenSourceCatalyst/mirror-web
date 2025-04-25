@@ -1,0 +1,70 @@
+---
+import BasicLayout from "../layouts/BasicLayout.astro";
+import BrowseMirrors from "../components/BrowseMirrors.svelte";
+import "@/styles/global.css";
+
+const pageTitle = "浏览镜像 | 我的镜像站";
+const pageDescription = "浏览和搜索所有可用的开源软件镜像，按类别筛选并查看详情。";
+
+// 在服务端获取镜像数据
+let initialMirrors = [];
+let initialError = null;
+let categories = [];
+
+try {
+  const response = await fetch("http://localhost:8082/static/tunasync.json");
+
+  if (!response.ok) {
+    throw new Error(`HTTP错误: ${response.status}`);
+  }
+
+  const data = await response.json();
+  initialMirrors = Object.entries(data).map(([name, info]) => ({
+    name,
+    ...info,
+    // 格式化最后更新时间
+    lastUpdated: new Date(info.last_update_ts * 1000).toLocaleString("zh-CN"),
+    // 分配一个类别（这里使用示例分类，实际数据中可能需要其他方式确定类别）
+    category: determineCategory(name),
+  }));
+  
+  // 提取所有唯一类别
+  categories = [...new Set(initialMirrors.map(mirror => mirror.category))];
+} catch (err) {
+  initialError = err.message;
+  console.error("服务端获取数据失败:", err);
+}
+
+// 根据名称确定类别的辅助函数（示例实现）
+function determineCategory(name) {
+  if (/ubuntu|debian|fedora|centos|arch|opensuse/i.test(name)) return "Linux发行版";
+  if (/python|npm|maven|gradle|rust|cargo/i.test(name)) return "开发工具";
+  if (/apache|nginx|tomcat|docker|kubernetes/i.test(name)) return "服务器软件";
+  if (/gcc|llvm|clang|make|cmake/i.test(name)) return "编译工具";
+  if (/mysql|postgresql|mongodb|redis|elasticsearch/i.test(name)) return "数据库";
+  if (/anaconda|tensorflow|pytorch|scikit/i.test(name)) return "数据科学";
+  if (/kernel|core|linux/i.test(name)) return "核心组件";
+  if (/ubuntu|windows|ios|android/i.test(name)) return "操作系统";
+  return "其他镜像";
+}
+---
+
+<BasicLayout title={pageTitle} description={pageDescription}>
+  <div class="container mx-auto px-4 py-6">
+    <div class="mb-8">
+      <h1 class="from-primary-500 to-tertiary-500 bg-gradient-to-r bg-clip-text text-4xl font-bold text-transparent mb-4">
+        浏览镜像
+      </h1>
+      <p class="text-lg text-surface-700-200-token">
+        探索我们的开源软件镜像集合，通过分类浏览或搜索找到您需要的资源
+      </p>
+    </div>
+
+    <BrowseMirrors 
+      client:load 
+      initialMirrors={initialMirrors} 
+      initialError={initialError}
+      categories={categories}
+    />
+  </div>
+</BasicLayout>

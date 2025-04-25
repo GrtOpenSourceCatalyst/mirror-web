@@ -1,6 +1,7 @@
 <script>
   import { onMount } from "svelte";
   import { Toaster, createToaster } from "@skeletonlabs/skeleton-svelte";
+  import { fade, fly } from "svelte/transition";
 
   // 导入Lucide图标
   import { Search, Moon, Sun, Menu, X } from "lucide-svelte";
@@ -9,6 +10,7 @@
   let darkMode = false;
   let mobileMenuOpen = false;
   let searchQuery = "";
+  let isScrolled = false;
 
   // Toast通知
   const toaster = createToaster();
@@ -16,12 +18,18 @@
   // 切换主题
   function toggleTheme() {
     darkMode = !darkMode;
-    document.documentElement.classList.toggle("dark", darkMode);
 
-    // // 保存用户偏好
-    // if (typeof localStorage !== "undefined") {
-    //   localStorage.setItem("theme", darkMode ? "dark" : "light");
-    // }
+    // 更新 HTML 类和属性
+    document.documentElement.classList.toggle("dark", darkMode);
+    document.documentElement.setAttribute(
+      "data-theme",
+      darkMode ? "skeleton-dark" : "skeleton"
+    );
+
+    // 保存用户偏好
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem("theme", darkMode ? "dark" : "light");
+    }
 
     // 显示主题切换通知
     toaster.info({
@@ -48,38 +56,59 @@
     }
   }
 
-  // // 在组件挂载时检查用户的主题偏好
-  // onMount(() => {
-  //   if (typeof localStorage !== "undefined" && localStorage.getItem("theme") === "dark") {
-  //     darkMode = true;
-  //     document.documentElement.classList.add("dark");
-  //   } else if (typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-  //     darkMode = true;
-  //     document.documentElement.classList.add("dark");
-  //   }
-  // });
+  // 监听滚动事件
+  function handleScroll() {
+    isScrolled = window.scrollY > 10;
+  }
+
+  // 在组件挂载时检查用户的主题偏好和设置滚动监听
+  onMount(() => {
+    // 主题设置
+    if (typeof localStorage !== "undefined" && localStorage.getItem("theme") === "dark") {
+      darkMode = true;
+      document.documentElement.classList.add("dark");
+      document.documentElement.setAttribute("data-theme", "skeleton-dark");
+    } else if (typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      darkMode = true;
+      document.documentElement.classList.add("dark");
+      document.documentElement.setAttribute("data-theme", "skeleton-dark");
+    }
+
+    // 滚动监听
+    window.addEventListener("scroll", handleScroll);
+
+    // 组件卸载时移除监听器
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  });
 </script>
 
 <header
-  class="sticky top-0 z-50 w-full transition-all duration-300 bg-background/80 backdrop-blur-2xl border-b border-surface-300-600-token shadow-md">
+  class="sticky top-0 z-50 w-full transition-all duration-300 {isScrolled ? 'shadow-lg' : 'shadow-md'} 
+  {isScrolled ? 'bg-surface-100-800-token/95' : 'bg-surface-100-800-token/80'} 
+  backdrop-blur-2xl border-b border-surface-300-600-token">
   <div class="container mx-auto px-4">
     <div class="flex items-center justify-between h-16">
       <!-- 网站Logo和标题 -->
       <div class="flex items-center">
-        <a href="/" class="flex items-center space-x-2">
-          <div class="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold">M</div>
+        <a href="/" class="flex items-center space-x-2 group">
+          <div class="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold 
+                     transition-all duration-300 group-hover:scale-110">M
+          </div>
           <span
-            class="text-xl font-bold tracking-wider bg-gradient-to-r from-primary-500 to-tertiary-500 bg-clip-text text-transparent">我的镜像站</span>
+            class="text-xl font-bold tracking-wider bg-gradient-to-r from-primary-500 to-tertiary-500 bg-clip-text text-transparent
+                   transition-all duration-300 group-hover:from-tertiary-500 group-hover:to-primary-500">我的镜像站</span>
         </a>
       </div>
 
       <!-- 桌面导航 -->
       <nav class="hidden md:flex items-center space-x-1">
-        <a href="/" class="btn btn-sm variant-ghost-surface">首页</a>
-        <a href="/browse" class="btn btn-sm variant-ghost-surface">浏览</a>
-        <a href="/popular" class="btn btn-sm variant-ghost-surface">热门</a>
-        <a href="/new" class="btn btn-sm variant-ghost-surface">最新</a>
-        <a href="/about" class="btn btn-sm variant-ghost-surface">关于</a>
+        <a href="/" class="btn btn-sm variant-ghost-surface hover:variant-soft-primary">首页</a>
+        <a href="/browse" class="btn btn-sm variant-ghost-surface hover:variant-soft-primary">浏览</a>
+        <a href="/popular" class="btn btn-sm variant-ghost-surface hover:variant-soft-primary">热门</a>
+        <a href="/new" class="btn btn-sm variant-ghost-surface hover:variant-soft-primary">最新</a>
+        <a href="/about" class="btn btn-sm variant-ghost-surface hover:variant-soft-primary">关于</a>
       </nav>
 
       <!-- 搜索和主题切换 -->
@@ -91,10 +120,10 @@
             bind:value={searchQuery}
             on:keydown={handleSearch}
             placeholder="搜索镜像..."
-            class="input input-sm pl-9 pr-4 rounded-full w-40 lg:w-64 focus:w-72 transition-all duration-300"
+            class="input input-sm pl-9 pr-4 rounded-full w-40 lg:w-64 focus:w-72 transition-all duration-300 focus:ring-primary-500"
           />
           <button
-            class="absolute left-2 top-1/2 transform -translate-y-1/2 text-surface-500-400-token"
+            class="absolute left-2 top-1/2 transform -translate-y-1/2 text-surface-500-400-token hover:text-primary-500 transition-colors"
             on:click={handleSearch}
           >
             <Search size={18} />
@@ -103,22 +132,24 @@
 
         <!-- 主题切换 -->
         <button
-          class="btn btn-sm variant-ghost-surface aspect-square"
+          class="btn btn-sm variant-ghost-surface aspect-square hover:variant-soft-primary"
           on:click={toggleTheme}
           aria-label="切换主题"
+          title={darkMode ? "切换至亮色模式" : "切换至暗色模式"}
         >
           {#if darkMode}
-            <Sun size={18} />
+            <Sun size={18} class="transition-transform hover:rotate-45 duration-300" />
           {:else}
-            <Moon size={18} />
+            <Moon size={18} class="transition-transform hover:rotate-12 duration-300" />
           {/if}
         </button>
 
         <!-- 移动端菜单按钮 -->
         <button
-          class="btn btn-sm variant-ghost-surface md:hidden aspect-square"
+          class="btn btn-sm variant-ghost-surface md:hidden aspect-square hover:variant-soft-primary"
           on:click={() => mobileMenuOpen = !mobileMenuOpen}
           aria-label="菜单"
+          aria-expanded={mobileMenuOpen}
         >
           {#if mobileMenuOpen}
             <X size={18} />
@@ -133,13 +164,17 @@
 
   <!-- 移动端菜单 -->
   {#if mobileMenuOpen}
-    <div class="md:hidden bg-surface-100-800-token border-t border-surface-300-600-token">
+    <div class="md:hidden bg-surface-100-800-token border-t border-surface-300-600-token"
+         transition:fly={{ y: -10, duration: 200 }}>
       <div class="container mx-auto px-4 py-3 space-y-2">
-        <a href="/" class="btn btn-sm w-full variant-ghost-surface justify-start">首页</a>
-        <a href="/browse" class="btn btn-sm w-full variant-ghost-surface justify-start">浏览</a>
-        <a href="/popular" class="btn btn-sm w-full variant-ghost-surface justify-start">热门</a>
-        <a href="/new" class="btn btn-sm w-full variant-ghost-surface justify-start">最新</a>
-        <a href="/about" class="btn btn-sm w-full variant-ghost-surface justify-start">关于</a>
+        <a href="/" class="btn btn-sm w-full variant-ghost-surface hover:variant-soft-primary justify-start">首页</a>
+        <a href="/browse"
+           class="btn btn-sm w-full variant-ghost-surface hover:variant-soft-primary justify-start">浏览</a>
+        <a href="/popular"
+           class="btn btn-sm w-full variant-ghost-surface hover:variant-soft-primary justify-start">热门</a>
+        <a href="/new" class="btn btn-sm w-full variant-ghost-surface hover:variant-soft-primary justify-start">最新</a>
+        <a href="/about"
+           class="btn btn-sm w-full variant-ghost-surface hover:variant-soft-primary justify-start">关于</a>
 
         <!-- 移动端搜索框 -->
         <div class="relative w-full mt-2">
@@ -148,10 +183,10 @@
             bind:value={searchQuery}
             on:keydown={handleSearch}
             placeholder="搜索镜像..."
-            class="input input-sm pl-9 pr-4 rounded-full w-full"
+            class="input input-sm pl-9 pr-4 rounded-full w-full focus:ring-primary-500"
           />
           <button
-            class="absolute left-2 top-1/2 transform -translate-y-1/2 text-surface-500-400-token"
+            class="absolute left-2 top-1/2 transform -translate-y-1/2 text-surface-500-400-token hover:text-primary-500 transition-colors"
             on:click={handleSearch}
           >
             <Search size={18} />
@@ -163,18 +198,18 @@
 </header>
 
 <style>
-    /*!* 活动链接样式 *!*/
-    /*:global(a.active) {*/
-    /*    @apply bg-primary-500/20 text-primary-500;*/
-    /*}*/
+    /* 活动链接样式 */
+    :global(a.active) {
+        /*@apply bg-primary-500/20 text-primary-500;*/
+    }
 
-    /*!* 链接悬停效果 *!*/
-    /*a.btn:hover {*/
-    /*    @apply bg-primary-500/10;*/
-    /*}*/
+    /* 链接悬停效果 */
+    a.btn:hover {
+        /*@apply bg-primary-500/10;*/
+    }
 
-    /*!* 平滑过渡 *!*/
-    /*a, button {*/
-    /*    @apply transition-all duration-200;*/
-    /*}*/
+    /* 平滑过渡 */
+    a, button {
+        /*@apply transition-all duration-200;*/
+    }
 </style>

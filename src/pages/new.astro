@@ -1,0 +1,55 @@
+---
+import BasicLayout from "../layouts/BasicLayout.astro";
+import NewMirrors from "../components/NewMirrors.svelte";
+import "@/styles/global.css";
+
+const pageTitle = "最新镜像 | 我的镜像站";
+const pageDescription = "查看最近更新的开源软件镜像，了解最新的资源变化。";
+
+// 在服务端获取镜像数据
+let initialMirrors = [];
+let initialError = null;
+
+try {
+  const response = await fetch("http://localhost:8082/static/tunasync.json");
+
+  if (!response.ok) {
+    throw new Error(`HTTP错误: ${response.status}`);
+  }
+
+  const data = await response.json();
+  initialMirrors = Object.entries(data).map(([name, info]) => ({
+    name,
+    ...info,
+    // 格式化最后更新时间
+    lastUpdated: new Date(info.last_update_ts * 1000).toLocaleString("zh-CN"),
+    // 原始时间戳
+    timestampMs: info.last_update_ts * 1000,
+  }));
+
+  // 按更新时间降序排序，最新的排在前面
+  initialMirrors.sort((a, b) => b.timestampMs - a.timestampMs);
+} catch (err) {
+  initialError = err.message;
+  console.error("服务端获取数据失败:", err);
+}
+---
+
+<BasicLayout title={pageTitle} description={pageDescription}>
+  <div class="container mx-auto px-4 py-6">
+    <div class="mb-8">
+      <h1 class="from-primary-500 to-tertiary-500 bg-gradient-to-r bg-clip-text text-4xl font-bold text-transparent mb-4">
+        最新镜像
+      </h1>
+      <p class="text-lg text-surface-700-200-token">
+        最近更新的开源软件镜像，按更新时间排序
+      </p>
+    </div>
+
+    <NewMirrors 
+      client:load 
+      initialMirrors={initialMirrors} 
+      initialError={initialError}
+    />
+  </div>
+</BasicLayout>

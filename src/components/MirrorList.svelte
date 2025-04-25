@@ -2,10 +2,14 @@
   import { onMount } from "svelte";
   import { Toaster, createToaster } from "@skeletonlabs/skeleton-svelte";
 
+  // 接收服务端渲染的初始数据
+  export let initialMirrors = [];
+  export let initialError = null;
+
   // 状态变量
-  let mirrors = [];
-  let loading = true;
-  let error = null;
+  let mirrors = initialMirrors;
+  let loading = initialMirrors.length === 0 && !initialError;
+  let error = initialError;
   let searchTerm = "";
   let sortBy = "name"; // 默认按名称排序
 
@@ -31,7 +35,7 @@
         // 格式化最后更新时间
         lastUpdated: new Date(info.last_update_ts * 1000).toLocaleString("zh-CN")
       }));
-
+      error = null;
     } catch (err) {
       error = err.message;
       console.error(err);
@@ -72,9 +76,17 @@
     }
   }
 
+  // 跳转到镜像详情页
+  function goToMirrorPage(mirrorName) {
+    window.location.href = `/mirror/${mirrorName}`;
+  }
+
   onMount(() => {
-    fetchMirrors();
-    console.log("Mounted and fetching mirrors...");
+    // 如果没有初始数据或有错误时，才在客户端请求数据
+    if (initialMirrors.length === 0 && !initialError) {
+      fetchMirrors();
+    }
+    console.log("Component mounted with initial data:", initialMirrors.length);
   });
 </script>
 
@@ -134,12 +146,13 @@
             {#each filteredMirrors as mirror (mirror.name)}
               <tr class="{mirror.status === 'success' ? '' :
                 mirror.status === 'failed' ? 'bg-red-500/10' :
-                mirror.status === 'syncing' ? 'bg-yellow-500/10' : ''} hover:bg-surface-200/50 transition-colors duration-300 cursor-pointer">
+                mirror.status === 'syncing' ? 'bg-yellow-500/10' : ''} hover:bg-surface-200/50 transition-colors duration-300 cursor-pointer"
+                on:click={() => goToMirrorPage(mirror.name)}>
                 <td><span class="space-grotesk-google">{mirror.name}</span></td>
                 <td>
-        <span class="badge {getStatusBadgeClass(mirror.status)}">
-          {mirror.status === 'success' ? '正常' : mirror.status === 'failed' ? '失败' : mirror.status === 'syncing' ? '同步中' : mirror.status}
-        </span>
+                  <span class="badge {getStatusBadgeClass(mirror.status)}">
+                    {mirror.status === 'success' ? '正常' : mirror.status === 'failed' ? '失败' : mirror.status === 'syncing' ? '同步中' : mirror.status}
+                  </span>
                 </td>
                 <td><span class="space-grotesk-google">{mirror.size || 'N/A'}</span></td>
                 <td><span class="space-grotesk-google">{mirror.lastUpdated}</span></td>

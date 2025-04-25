@@ -1,30 +1,71 @@
 ---
-// src/layouts/BaseLayout.astro
-import Header from "../components/Header.svelte"; // 引入 Svelte 头部组件
-import Footer from "../components/Footer.svelte"; // 引入 Svelte 页脚组件
-import "@/styles/global.css"; // 引入全局样式（包含 Tailwind 和 Skeleton 基础）
+// src/layouts/BasicLayout.astro
+import Header from "../components/Header.svelte";
+import Footer from "../components/Footer.svelte";
+import "@/styles/global.css";
 
-// 设置 HTML 的 data-theme 属性，让 Skeleton 主题生效
-// 注意：你可能需要 client:load 来确保 store 在客户端可用，或者在 <head> 中直接设置
-// 一个简单的示例，实际可能更复杂，取决于你的主题切换实现
-// const currentTheme = $theme; // 如果在 Astro 中直接读取 store
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  canonicalURL?: string;
+}
+
+const {
+  title = "我的镜像站 | 高速文件下载服务",
+  description = "提供各类开源软件、系统镜像的高速下载服务",
+  image = "/images/social-preview.jpg",
+  canonicalURL = Astro.url.href,
+} = Astro.props;
 ---
 
 <html lang="zh-CN" data-theme="skeleton">
   <head>
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="generator" content={Astro.generator} />
-    <title>{Astro.props.title || "我的镜像站"}</title>
-    <meta
-      name="description"
-      content={Astro.props.description || "文件镜像服务"}
-    />
+    
+    <!-- SEO -->
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL} />
+    
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={Astro.url.href} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    {image && <meta property="og:image" content={new URL(image, Astro.url)} />}
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {image && <meta name="twitter:image" content={new URL(image, Astro.url)} />}
+    
+    <!-- 预连接常用的域名，提高性能 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <!-- 主题切换脚本，避免闪烁 -->
+    <script is:inline>
+      // 立即检查并应用保存的主题，防止闪烁
+      const savedTheme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      
+      if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+        document.documentElement.classList.add('dark');
+        document.documentElement.setAttribute('data-theme', 'skeleton-dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.setAttribute('data-theme', 'skeleton');
+      }
+    </script>
   </head>
-  <body class="bg-surface-100-800-token">
+  <body class="bg-surface-100-800-token min-h-screen flex flex-col">
     <Header client:load />
-    <main class="container mx-auto p-4">
+    <main class="container mx-auto p-4 flex-grow">
       <slot />
     </main>
     <Footer client:idle />
