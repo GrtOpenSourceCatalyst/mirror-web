@@ -1,6 +1,7 @@
 <script>
   import { onMount } from "svelte";
   import { Toaster, createToaster } from "@skeletonlabs/skeleton-svelte";
+  import { RefreshCw, Search } from "lucide-svelte";
 
   // 接收服务端渲染的初始数据
   export let initialMirrors = [];
@@ -13,7 +14,7 @@
   let searchTerm = "";
   let sortBy = "name"; // 默认按名称排序
 
-  // Toast通知
+  // Toast 通知
   const toaster = createToaster();
 
   // 获取镜像数据
@@ -25,7 +26,7 @@
       console.log(response);
 
       if (!response.ok) {
-        throw new Error(`HTTP错误: ${response.status}`);
+        throw new Error(`HTTP 错误: ${response.status}`);
       }
 
       const data = await response.json();
@@ -41,7 +42,7 @@
       console.error(err);
       toaster.error({
         title: "加载失败",
-        description: `无法获取镜像列表: ${err.message}`,
+        description: ` 无法获取镜像列表: ${err.message}`,
         timeout: 5000
       });
     } finally {
@@ -92,31 +93,42 @@
 
 <div class="container mx-auto p-4">
   <div class="card p-4 mb-4">
-    <h2 class="h2 mb-4">镜像列表</h2>
+    <h2 class="h2 mb-4"> 镜像列表 </h2>
 
-    <!-- 搜索和排序控制 -->
-    <div class="flex flex-col sm:flex-row items-center gap-4 mb-4">
-      <div class="input-group input-group-divider grid-cols-[auto_1fr] w-full sm:w-auto">
+    <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+      <div class="relative w-full sm:w-64">
         <input
-          type="search"
+          type="text"
           bind:value={searchTerm}
           placeholder="搜索镜像..."
-          class="input"
+          class="input input-bordered w-full pl-10 h-10"
         />
+        <div class="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/50">
+          <Search size={16} strokeWidth={1.5} />
+        </div>
       </div>
 
-      <div class="flex items-center gap-2">
-        <span>排序:</span>
-        <select bind:value={sortBy} class="select">
-          <option value="name">名称</option>
-          <option value="status">状态</option>
-          <option value="date">更新时间</option>
+      <div class="flex gap-2">
+        <select bind:value={sortBy} class="select select-bordered h-10 text-sm">
+          <option value="name"> 名称</option>
+          <option value="status"> 状态</option>
+          <option value="date"> 更新时间</option>
+          <option value="size"> 大小</option>
         </select>
-      </div>
 
-      <button class="btn variant-filled-primary ml-auto" on:click={fetchMirrors}>
-        刷新列表
-      </button>
+        <button
+          class="btn btn-ghost h-10 ml-auto"
+          on:click={fetchMirrors}
+          disabled={loading}
+        >
+          {#if loading}
+            <span class="loading loading-spinner loading-xs"></span>
+          {:else}
+            <RefreshCw size={16} class="mr-1" />
+            刷新
+          {/if}
+        </button>
+      </div>
     </div>
 
     <!-- 加载状态 -->
@@ -127,8 +139,8 @@
       <!-- 错误信息 -->
     {:else if error}
       <div class="alert variant-filled-error">
-        <p>加载失败: {error}</p>
-        <button class="btn variant-filled" on:click={fetchMirrors}>重试</button>
+        <p> 加载失败: {error}</p>
+        <button class="btn variant-filled" on:click={fetchMirrors}> 重试</button>
       </div>
       <!-- 数据列表 -->
     {:else}
@@ -136,10 +148,10 @@
         <table class="table table-hover">
           <thead>
             <tr>
-              <th>镜像名称</th>
-              <th>状态</th>
-              <th>大小</th>
-              <th>最后更新时间</th>
+              <th> 镜像名称</th>
+              <th> 状态</th>
+              <th> 大小</th>
+              <th> 最后更新时间</th>
             </tr>
           </thead>
           <tbody>
@@ -147,10 +159,10 @@
               <tr class="{mirror.status === 'success' ? '' :
                 mirror.status === 'failed' ? 'bg-red-500/10' :
                 mirror.status === 'syncing' ? 'bg-yellow-500/10' : ''} hover:bg-surface-200/50 transition-colors duration-300 cursor-pointer"
-                on:click={() => goToMirrorPage(mirror.name)}>
+                  on:click={()=> goToMirrorPage(mirror.name)}>
                 <td><span class="space-grotesk-google">{mirror.name}</span></td>
                 <td>
-                  <span class="badge {getStatusBadgeClass(mirror.status)}">
+                  <span class="badge {getStatusBadgeClass(mirror.status)} badge-soft">
                     {mirror.status === 'success' ? '正常' : mirror.status === 'failed' ? '失败' : mirror.status === 'syncing' ? '同步中' : mirror.status}
                   </span>
                 </td>
@@ -159,13 +171,13 @@
               </tr>
             {:else}
               <tr>
-                <td colspan="4" class="text-center py-4">未找到符合条件的镜像</td>
+                <td colspan="4" class="text-center py-4"> 未找到符合条件的镜像</td>
               </tr>
             {/each}
           </tbody>
         </table>
       </div>
-      <p class="text-sm mt-2 text-surface-500-400-token">共 {filteredMirrors.length} 个镜像</p>
+      <p class="text-sm mt-2 text-surface-500-400-token"> 共 {filteredMirrors.length} 个镜像 </p>
     {/if}
   </div>
 </div>

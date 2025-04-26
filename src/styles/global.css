@@ -1,10 +1,8 @@
 @import 'tailwindcss';
 
-@import '@skeletonlabs/skeleton';
-@import '@skeletonlabs/skeleton/optional/presets';
-@import '@skeletonlabs/skeleton/themes/cerberus';
-
-@source '@skeletonlabs/skeleton-svelte/dist';
+@plugin "daisyui" {
+    themes: corporate --default, dark --prefersdark;
+}
 
 @custom-variant dark (&:where(.dark, .dark *));
 

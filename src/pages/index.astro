@@ -16,7 +16,7 @@ try {
   const response = await fetch("http://localhost:8082/static/tunasync.json");
 
   if (!response.ok) {
-    throw new Error(`HTTP错误: ${response.status}`);
+    throw new Error(`HTTP 错误: ${response.status}`);
   }
 
   const data = await response.json();
@@ -33,28 +33,24 @@ try {
 ---
 
 <BasicLayout title={pageTitle} description={pageDescription}>
-  <div class="mx-auto w-full max-w-6xl">
-    <section class="mb-8">
-      <h1
-        class="from-primary-500 to-tertiary-500 mb-4 bg-gradient-to-r bg-clip-text text-center text-4xl font-bold text-transparent"
-      >
-        欢迎使用我的镜像站
+  <div class="mx-auto w-full max-w-7xl">
+    {/* Slogan Section based on the image */}
+    <section class="text-foreground mb-8 rounded-lg px-6 py-10 text-left">
+      {/* Added basic styling similar to image */}
+      <h1 class="mb-3 text-4xl font-bold lg:text-5xl">
+        Open Source Software Mirror
       </h1>
-      <p class="text-surface-700-200-token mb-6 text-center text-lg">
-        快速、稳定、可靠的文件下载服务
+      <p class="text-lg lg:text-xl">
+        Welcome to Central South University Mirror Station
       </p>
-      <div class="mb-6 flex justify-center">
-        <a href="/mirrors" class="btn variant-filled-primary">查看所有镜像</a>
-      </div>
+      <p class="text-foreground/70 text-sm">
+        Let's make the world a better place together!
+      </p>
     </section>
 
+    {/* Existing Popular Mirrors Section */}
     <section class="mb-8">
-      <h2 class="h2 mb-6">热门镜像</h2>
-      <PopularMirrors
-        client:load
-        initialMirrors={initialMirrors}
-        initialError={initialError}
-      />
+      <MirrorList initialMirrors={initialMirrors} initialError={initialError} />
     </section>
   </div>
 </BasicLayout>

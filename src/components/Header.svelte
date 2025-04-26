@@ -1,10 +1,9 @@
 <script>
   import { onMount } from "svelte";
-  import { Toaster, createToaster } from "@skeletonlabs/skeleton-svelte";
-  import { fade, fly } from "svelte/transition";
+  import { fade, fly, slide } from "svelte/transition";
 
-  // 导入Lucide图标
-  import { Search, Moon, Sun, Menu, X } from "lucide-svelte";
+  // 导入 Lucide 图标
+  import { Search, Moon, Sun, Menu, X, Server, Download, Globe, Shield, Info } from "lucide-svelte";
 
   // 状态管理
   let darkMode = false;
@@ -12,8 +11,14 @@
   let searchQuery = "";
   let isScrolled = false;
 
-  // Toast通知
-  const toaster = createToaster();
+  // 导航项
+  const navItems = [
+    { name: "首页", href: "/", icon: Globe },
+    { name: "镜像列表", href: "/mirrors", icon: Server },
+    { name: "下载中心", href: "/downloads", icon: Download },
+    { name: "状态监控", href: "/status", icon: Shield },
+    { name: "关于我们", href: "/about", icon: Info }
+  ];
 
   // 切换主题
   function toggleTheme() {
@@ -23,36 +28,12 @@
     document.documentElement.classList.toggle("dark", darkMode);
     document.documentElement.setAttribute(
       "data-theme",
-      darkMode ? "skeleton-dark" : "skeleton"
+      darkMode ? "dark" : "corporate"
     );
 
     // 保存用户偏好
     if (typeof localStorage !== "undefined") {
       localStorage.setItem("theme", darkMode ? "dark" : "light");
-    }
-
-    // 显示主题切换通知
-    toaster.info({
-      type: "info",
-      title: "主题切换",
-      description: `已切换到${darkMode ? "暗色" : "亮色"}主题`,
-      background: "variant-filled-primary",
-      timeout: 2000
-    });
-  }
-
-  // 处理搜索
-  function handleSearch(e) {
-    if (e.key === "Enter" || e.type === "click") {
-      if (searchQuery.trim()) {
-        toaster.trigger({
-          message: `正在搜索: ${searchQuery}`,
-          background: "variant-filled-secondary",
-          timeout: 2000
-        });
-        // 这里可以添加实际的搜索逻辑
-        searchQuery = "";
-      }
     }
   }
 
@@ -67,11 +48,9 @@
     if (typeof localStorage !== "undefined" && localStorage.getItem("theme") === "dark") {
       darkMode = true;
       document.documentElement.classList.add("dark");
-      document.documentElement.setAttribute("data-theme", "skeleton-dark");
     } else if (typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches) {
       darkMode = true;
       document.documentElement.classList.add("dark");
-      document.documentElement.setAttribute("data-theme", "skeleton-dark");
     }
 
     // 滚动监听
@@ -85,114 +64,85 @@
 </script>
 
 <header
-  class="sticky top-0 z-50 w-full transition-all duration-300 {isScrolled ? 'shadow-lg' : 'shadow-md'} 
-  {isScrolled ? 'bg-surface-100-800-token/95' : 'bg-surface-100-800-token/80'} 
-  backdrop-blur-2xl border-b border-surface-300-600-token">
-  <div class="container mx-auto px-4">
-    <div class="flex items-center justify-between h-16">
-      <!-- 网站Logo和标题 -->
+  class="sticky top-0 z-50 w-full transition-all duration-300 {isScrolled ? 'shadow-md' : ''}
+  {isScrolled ? 'bg-base-100/95' : 'bg-base-100'} 
+  backdrop-blur-sm border-b border-neutral-content/10">
+  <div class="container mx-auto px-4 max-w-7xl">
+    <div class="flex items-center gap-8 h-16 lg:h-20">
+      <!-- 网站 Logo 和标题 -->
       <div class="flex items-center">
-        <a href="/" class="flex items-center space-x-2 group">
-          <div class="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold 
-                     transition-all duration-300 group-hover:scale-110">M
+        <a href="/" class="flex items-center space-x-3 group">
+          <div class="w-10 h-10 bg-neutral text-neutral-content flex items-center justify-center font-bold text-xl
+                     transition-all duration-300 group-hover:shadow-sm">
+            <Server size={20} strokeWidth={1.5} />
           </div>
-          <span
-            class="text-xl font-bold tracking-wider bg-gradient-to-r from-primary-500 to-tertiary-500 bg-clip-text text-transparent
-                   transition-all duration-300 group-hover:from-tertiary-500 group-hover:to-primary-500">我的镜像站</span>
+          <div class="flex flex-col">
+            <span class="text-lg font-semibold text-base-content tracking-wide uppercase">Mirror Center</span>
+            <span class="text-xs text-base-content/70 -mt-1 tracking-wider"> 官方开源软件镜像站 </span>
+          </div>
         </a>
       </div>
 
       <!-- 桌面导航 -->
-      <nav class="hidden md:flex items-center space-x-1">
-        <a href="/" class="btn btn-sm variant-ghost-surface hover:variant-soft-primary">首页</a>
-        <a href="/browse" class="btn btn-sm variant-ghost-surface hover:variant-soft-primary">浏览</a>
-        <a href="/popular" class="btn btn-sm variant-ghost-surface hover:variant-soft-primary">热门</a>
-        <a href="/new" class="btn btn-sm variant-ghost-surface hover:variant-soft-primary">最新</a>
-        <a href="/about" class="btn btn-sm variant-ghost-surface hover:variant-soft-primary">关于</a>
+      <nav class="hidden lg:flex items-center space-x-1">
+        {#each navItems as item}
+          <a
+            href={item.href}
+            class="flex items-center px-4 py-2 rounded text-base-content/80 hover:text-primary hover:bg-base-200/30 transition-all duration-200 font-medium"
+          >
+            <svelte:component this={item.icon} size={16} class="mr-2" strokeWidth={1.5} />
+            {item.name}
+          </a>
+        {/each}
       </nav>
 
-      <!-- 搜索和主题切换 -->
-      <div class="flex items-center space-x-2">
-        <!-- 搜索框 -->
-        <div class="relative hidden md:block">
-          <input
-            type="search"
-            bind:value={searchQuery}
-            on:keydown={handleSearch}
-            placeholder="搜索镜像..."
-            class="input input-sm pl-9 pr-4 rounded-full w-40 lg:w-64 focus:w-72 transition-all duration-300 focus:ring-primary-500"
-          />
-          <button
-            class="absolute left-2 top-1/2 transform -translate-y-1/2 text-surface-500-400-token hover:text-primary-500 transition-colors"
-            on:click={handleSearch}
-          >
-            <Search size={18} />
-          </button>
-        </div>
-
+      <div class="flex items-center gap-2 ml-auto">
         <!-- 主题切换 -->
         <button
-          class="btn btn-sm variant-ghost-surface aspect-square hover:variant-soft-primary"
+          class="btn btn-sm btn-ghost hover:bg-base-200/70"
           on:click={toggleTheme}
-          aria-label="切换主题"
-          title={darkMode ? "切换至亮色模式" : "切换至暗色模式"}
+          aria-label={darkMode ? "切换到亮色模式" : "切换到暗色模式"}
         >
           {#if darkMode}
-            <Sun size={18} class="transition-transform hover:rotate-45 duration-300" />
+            <Sun size={18} strokeWidth={1.5} />
           {:else}
-            <Moon size={18} class="transition-transform hover:rotate-12 duration-300" />
+            <Moon size={18} strokeWidth={1.5} />
           {/if}
         </button>
 
         <!-- 移动端菜单按钮 -->
         <button
-          class="btn btn-sm variant-ghost-surface md:hidden aspect-square hover:variant-soft-primary"
-          on:click={() => mobileMenuOpen = !mobileMenuOpen}
+          class="btn btn-sm btn-ghost lg:hidden hover:bg-base-200/70"
+          on:click={()=> (mobileMenuOpen = !mobileMenuOpen)}
           aria-label="菜单"
           aria-expanded={mobileMenuOpen}
         >
           {#if mobileMenuOpen}
-            <X size={18} />
+            <X size={18} strokeWidth={1.5} />
           {:else}
-            <Menu size={18} />
+            <Menu size={18} strokeWidth={1.5} />
           {/if}
         </button>
       </div>
     </div>
   </div>
-  <Toaster {toaster}></Toaster>
 
   <!-- 移动端菜单 -->
   {#if mobileMenuOpen}
-    <div class="md:hidden bg-surface-100-800-token border-t border-surface-300-600-token"
-         transition:fly={{ y: -10, duration: 200 }}>
-      <div class="container mx-auto px-4 py-3 space-y-2">
-        <a href="/" class="btn btn-sm w-full variant-ghost-surface hover:variant-soft-primary justify-start">首页</a>
-        <a href="/browse"
-           class="btn btn-sm w-full variant-ghost-surface hover:variant-soft-primary justify-start">浏览</a>
-        <a href="/popular"
-           class="btn btn-sm w-full variant-ghost-surface hover:variant-soft-primary justify-start">热门</a>
-        <a href="/new" class="btn btn-sm w-full variant-ghost-surface hover:variant-soft-primary justify-start">最新</a>
-        <a href="/about"
-           class="btn btn-sm w-full variant-ghost-surface hover:variant-soft-primary justify-start">关于</a>
-
-        <!-- 移动端搜索框 -->
-        <div class="relative w-full mt-2">
-          <input
-            type="search"
-            bind:value={searchQuery}
-            on:keydown={handleSearch}
-            placeholder="搜索镜像..."
-            class="input input-sm pl-9 pr-4 rounded-full w-full focus:ring-primary-500"
-          />
-          <button
-            class="absolute left-2 top-1/2 transform -translate-y-1/2 text-surface-500-400-token hover:text-primary-500 transition-colors"
-            on:click={handleSearch}
-          >
-            <Search size={18} />
-          </button>
-        </div>
-      </div>
+    <div
+      class="lg:hidden bg-base-100 border-t border-neutral-content/10"
+      transition:slide={{duration: 200}}
+    >
+      <!-- 移动端导航链接 -->
+      {#each navItems as item}
+        <a
+          href={item.href}
+          class="flex items-center px-4 py-3 rounded text-base-content/80 hover:text-primary hover:bg-base-200/30 transition-all duration-200 font-medium"
+        >
+          <svelte:component this={item.icon} size={18} class="mr-3" strokeWidth={1.5} />
+          {item.name}
+        </a>
+      {/each}
     </div>
   {/if}
 </header>
@@ -200,16 +150,25 @@
 <style>
     /* 活动链接样式 */
     :global(a.active) {
-        /*@apply bg-primary-500/20 text-primary-500;*/
-    }
-
-    /* 链接悬停效果 */
-    a.btn:hover {
-        /*@apply bg-primary-500/10;*/
+        /*@apply text-primary bg-primary/5 font-semibold;*/
     }
 
     /* 平滑过渡 */
     a, button {
-        /*@apply transition-all duration-200;*/
+        @apply transition-all duration-200;
+    }
+
+    /* 自定义滚动条 */
+    :global(::-webkit-scrollbar) {
+        width: 8px;
+        height: 8px;
+    }
+
+    :global(::-webkit-scrollbar-track) {
+        /*@apply bg-base-200/30;*/
+    }
+
+    :global(::-webkit-scrollbar-thumb) {
+        /*@apply bg-neutral-content/20 rounded-full hover:bg-neutral-content/30;*/
     }
 </style>
